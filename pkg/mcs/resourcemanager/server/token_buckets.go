@@ -20,6 +20,8 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 	rmpb "github.com/pingcap/kvproto/pkg/resource_manager"
+	"github.com/pingcap/log"
+	"go.uber.org/zap"
 )
 
 const (
@@ -126,6 +128,7 @@ func (gts *GroupTokenBucketState) balanceSlotTokens(
 		if requiredToken != 0 {
 			slot = &TokenSlot{}
 			gts.tokenSlots[clientUniqueID] = slot
+			log.Info("gjt debug add resource group token slot", zap.Any("clientUniqueID", clientUniqueID), zap.Any("slots", len(gts.tokenSlots)), zap.Any("slots", gts.tokenSlots))
 			gts.clientConsumptionTokensSum = 0
 		}
 	} else {
@@ -135,6 +138,7 @@ func (gts *GroupTokenBucketState) balanceSlotTokens(
 		// Clean up slot that required 0.
 		if requiredToken == 0 {
 			delete(gts.tokenSlots, clientUniqueID)
+			log.Info("gjt debug delete resource group token slot", zap.Any("clientUniqueID", clientUniqueID), zap.Any("slots", len(gts.tokenSlots)), zap.Any("slots", gts.tokenSlots))
 			gts.clientConsumptionTokensSum = 0
 		}
 	}
@@ -166,6 +170,8 @@ func (gts *GroupTokenBucketState) balanceSlotTokens(
 				burstLimit = float64(settings.GetBurstLimit()) * evenRatio
 			)
 
+			log.Info("gjt debug br-1", zap.Any("clientUniqueID", clientUniqueID), zap.Any("slots", len(gts.tokenSlots)),
+			zap.Any("fillrate", fillRate), zap.Any("burstLimit", burstLimit), zap.Any("evenRatio", evenRatio))
 			slot.settings = &rmpb.TokenLimitSettings{
 				FillRate:   uint64(fillRate),
 				BurstLimit: int64(burstLimit),
@@ -186,6 +192,9 @@ func (gts *GroupTokenBucketState) balanceSlotTokens(
 				burstLimit  = float64(settings.GetBurstLimit()) * ratio
 				assignToken = elapseTokens * ratio
 			)
+			log.Info("gjt debug br-1", zap.Any("clientUniqueID", clientUniqueID), zap.Any("slots", len(gts.tokenSlots)),
+			zap.Any("fillrate", fillRate), zap.Any("burstLimit", burstLimit), zap.Any("ratio", ratio), zap.Any("slot.requireTokensSum", slot.requireTokensSum),
+			zap.Any("gts.clientConsumptionTokensSum", gts.clientConsumptionTokensSum), zap.Any("evenRatio", evenRatio))
 
 			// Need to reserve burst limit to next balance.
 			if burstLimit > 0 && slot.tokenCapacity > burstLimit {
