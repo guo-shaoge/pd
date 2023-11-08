@@ -101,6 +101,7 @@ func (gts *GroupTokenBucketState) Clone() *GroupTokenBucketState {
 }
 
 func (gts *GroupTokenBucketState) resetLoan() {
+	log.Info("gjt debug resetLoan()", zap.Any("slots", gts.tokenSlots))
 	gts.settingChanged = false
 	gts.Tokens = 0
 	gts.clientConsumptionTokensSum = 0
@@ -128,7 +129,7 @@ func (gts *GroupTokenBucketState) balanceSlotTokens(
 		if requiredToken != 0 {
 			slot = &TokenSlot{}
 			gts.tokenSlots[clientUniqueID] = slot
-			log.Info("gjt debug add resource group token slot", zap.Any("clientUniqueID", clientUniqueID), zap.Any("slots", len(gts.tokenSlots)), zap.Any("slots", gts.tokenSlots))
+			log.Info("gjt debug add resource group token slot", zap.Any("clientUniqueID", clientUniqueID), zap.Any("slots", len(gts.tokenSlots)), zap.Any("slots", gts.tokenSlots), zap.Any("requireTOken", requiredToken))
 			gts.clientConsumptionTokensSum = 0
 		}
 	} else {
@@ -138,7 +139,7 @@ func (gts *GroupTokenBucketState) balanceSlotTokens(
 		// Clean up slot that required 0.
 		if requiredToken == 0 {
 			delete(gts.tokenSlots, clientUniqueID)
-			log.Info("gjt debug delete resource group token slot", zap.Any("clientUniqueID", clientUniqueID), zap.Any("slots", len(gts.tokenSlots)), zap.Any("slots", gts.tokenSlots))
+			log.Info("gjt debug delete resource group token slot", zap.Any("clientUniqueID", clientUniqueID), zap.Any("slots", len(gts.tokenSlots)), zap.Any("slots", gts.tokenSlots), zap.Any("requireTOken", requiredToken))
 			gts.clientConsumptionTokensSum = 0
 		}
 	}
@@ -170,7 +171,7 @@ func (gts *GroupTokenBucketState) balanceSlotTokens(
 				burstLimit = float64(settings.GetBurstLimit()) * evenRatio
 			)
 
-			log.Info("gjt debug br-1", zap.Any("clientUniqueID", clientUniqueID), zap.Any("slots", len(gts.tokenSlots)),
+			log.Info("gjt debug br-1", zap.Any("clientUniqueID", clientUniqueID), zap.Any("slots", len(gts.tokenSlots)), zap.Any("slots", gts.tokenSlots),
 			zap.Any("fillrate", fillRate), zap.Any("burstLimit", burstLimit), zap.Any("evenRatio", evenRatio))
 			slot.settings = &rmpb.TokenLimitSettings{
 				FillRate:   uint64(fillRate),
@@ -192,7 +193,7 @@ func (gts *GroupTokenBucketState) balanceSlotTokens(
 				burstLimit  = float64(settings.GetBurstLimit()) * ratio
 				assignToken = elapseTokens * ratio
 			)
-			log.Info("gjt debug br-1", zap.Any("clientUniqueID", clientUniqueID), zap.Any("slots", len(gts.tokenSlots)),
+			log.Info("gjt debug br-2", zap.Any("clientUniqueID", clientUniqueID), zap.Any("slots", len(gts.tokenSlots)), zap.Any("slots", gts.tokenSlots),
 			zap.Any("fillrate", fillRate), zap.Any("burstLimit", burstLimit), zap.Any("ratio", ratio), zap.Any("slot.requireTokensSum", slot.requireTokensSum),
 			zap.Any("gts.clientConsumptionTokensSum", gts.clientConsumptionTokensSum), zap.Any("evenRatio", evenRatio))
 
@@ -260,6 +261,7 @@ func (gtb *GroupTokenBucket) patch(tb *rmpb.TokenBucket) {
 
 // init initializes the group token bucket.
 func (gtb *GroupTokenBucket) init(now time.Time, clientID uint64) {
+	log.Info("gjt debug init()", zap.Any("id", clientID))
 	if gtb.Settings.FillRate == 0 {
 		gtb.Settings.FillRate = defaultRefillRate
 	}
