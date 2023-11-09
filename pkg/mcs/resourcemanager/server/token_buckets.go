@@ -158,7 +158,7 @@ func (gts *GroupTokenBucketState) balanceSlotTokens(
 		return
 	}
 
-	for _, slot := range gts.tokenSlots {
+	for slotid, slot := range gts.tokenSlots {
 		if gts.clientConsumptionTokensSum == 0 || len(gts.tokenSlots) == 1 {
 			// Need to make each slot even.
 			slot.tokenCapacity = evenRatio * gts.Tokens
@@ -194,7 +194,7 @@ func (gts *GroupTokenBucketState) balanceSlotTokens(
 				assignToken = elapseTokens * ratio
 			)
 			log.Info("gjt debug br-2", zap.Any("clientUniqueID", clientUniqueID), zap.Any("slots", len(gts.tokenSlots)), zap.Any("slots", gts.tokenSlots),
-			zap.Any("fillrate", fillRate), zap.Any("burstLimit", burstLimit), zap.Any("ratio", ratio), zap.Any("slot.requireTokensSum", slot.requireTokensSum),
+			zap.Any("fillrate", fillRate), zap.Any("burstLimit", burstLimit), zap.Any("ratio", ratio), zap.Any("slot.slotid", slotid), zap.Any("slot.requireTokensSum", slot.requireTokensSum),
 			zap.Any("gts.clientConsumptionTokensSum", gts.clientConsumptionTokensSum), zap.Any("evenRatio", evenRatio))
 
 			// Need to reserve burst limit to next balance.
