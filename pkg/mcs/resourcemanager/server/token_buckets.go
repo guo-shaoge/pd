@@ -398,6 +398,8 @@ func (ts *TokenSlot) assignSlotTokens(requiredToken float64, targetPeriodMs uint
 	for i := 1; i < loanCoefficient; i++ {
 		p[i] = float64(loanCoefficient-i)*float64(fillRate)*targetPeriodTimeSec + p[i-1]
 	}
+	log.Info("gjt debug in assign bef loop", zap.Any("loanCoefficient", loanCoefficient), zap.Any("-ts.tokenCapacity", -ts.tokenCapacity),
+	zap.Any("p[0]", p[0]))
 	for i := 0; i < loanCoefficient && requiredToken > 0 && trickleTime < targetPeriodTimeSec; i++ {
 		loan := -ts.tokenCapacity
 		if loan >= p[i] {
