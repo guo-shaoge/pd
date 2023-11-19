@@ -183,6 +183,8 @@ func (gts *GroupTokenBucketState) balanceSlotTokens(
 				fillRate   = float64(settings.GetFillRate()) * evenRatio
 				burstLimit = float64(settings.GetBurstLimit()) * evenRatio
 			)
+			log.Info("gjt debug balance br-1", zap.Any("fillRate", fillRate), zap.Any("burstLimit", burstLimit),
+			zap.Any("evenRatio", evenRatio))
 
 			slot.settings = &rmpb.TokenLimitSettings{
 				FillRate:   uint64(fillRate),
