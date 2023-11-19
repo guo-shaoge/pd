@@ -204,6 +204,10 @@ func (gts *GroupTokenBucketState) balanceSlotTokens(
 				burstLimit  = float64(settings.GetBurstLimit()) * ratio
 				assignToken = elapseTokens * ratio
 			)
+			log.Info("gjt debug balance br-2", zap.Any("slot.requireTokensSum", slot.requireTokensSum),
+			zap.Any("gts.clientConsumptionTokensSum", gts.clientConsumptionTokensSum), zap.Any("evenRatio", evenRatio),
+			zap.Any("ratio", ratio), zap.Any("setting", settings), zap.Any("fillRate", fillRate), zap.Any("burstLimit", burstLimit),
+			zap.Any("assignToken", assignToken), zap.Any("tokenCap", slot.tokenCapacity))
 
 			// Need to reserve burst limit to next balance.
 			if burstLimit > 0 && slot.tokenCapacity > burstLimit {
@@ -403,6 +407,9 @@ func (ts *TokenSlot) assignSlotTokens(requiredToken float64, targetPeriodMs uint
 			ts.tokenCapacity -= requiredToken
 			grantedTokens += requiredToken
 			trickleTime += grantedTokens / fillRate
+			log.Info("gjt debug in assign loop br-1", zap.Any("i", i), zap.Any("p[i]", p[i]), zap.Any("fllrate", fillRate),
+			zap.Any("roundReserveTokens", roundReserveTokens), zap.Any("requiredToken", requiredToken),
+			zap.Any("grantedTokens", grantedTokens), zap.Any("ts.tokenCapacity", ts.tokenCapacity))
 			requiredToken = 0
 		} else {
 			roundReserveTime := roundReserveTokens / fillRate
@@ -411,8 +418,17 @@ func (ts *TokenSlot) assignSlotTokens(requiredToken float64, targetPeriodMs uint
 				requiredToken -= roundTokens
 				ts.tokenCapacity -= roundTokens
 				grantedTokens += roundTokens
+
+				log.Info("gjt debug in assign loop br-2-1", zap.Any("i", i), zap.Any("p[i]", p[i]), zap.Any("fllrate", fillRate),
+				zap.Any("roundReserveTokens", roundReserveTokens), zap.Any("requiredToken", requiredToken),
+				zap.Any("grantedTokens", grantedTokens), zap.Any("targetPeriodTimeSec", targetPeriodTimeSec), zap.Any("targetPeriodTimeSec", targetPeriodTimeSec), zap.Any("roundTokens", roundTokens) , zap.Any("ts.tokenCapacity", ts.tokenCapacity))
+
 				trickleTime = targetPeriodTimeSec
 			} else {
+				log.Info("gjt debug in assign loop br-2-2", zap.Any("i", i), zap.Any("p[i]", p[i]), zap.Any("fllrate", fillRate),
+				zap.Any("roundReserveTokens", roundReserveTokens), zap.Any("requiredToken", requiredToken),
+				zap.Any("grantedTokens", grantedTokens), zap.Any("ts.tokenCapacity", ts.tokenCapacity))
+
 				grantedTokens += roundReserveTokens
 				requiredToken -= roundReserveTokens
 				ts.tokenCapacity -= roundReserveTokens
@@ -421,11 +437,16 @@ func (ts *TokenSlot) assignSlotTokens(requiredToken float64, targetPeriodMs uint
 		}
 	}
 	if requiredToken > 0 && grantedTokens < defaultReserveRatio*float64(fillRate)*targetPeriodTimeSec {
+		log.Info("gjt debug out assign loop", zap.Any("requiredToken", requiredToken),
+		zap.Any("grantedTokens", grantedTokens), zap.Any("defaultReserveRatio", defaultReserveRatio),
+		zap.Any("fillRate", fillRate), zap.Any("targetPeriodTimeSec", targetPeriodTimeSec))
+
 		reservedTokens := math.Min(requiredToken+grantedTokens, defaultReserveRatio*float64(fillRate)*targetPeriodTimeSec)
 		ts.tokenCapacity -= reservedTokens - grantedTokens
 		grantedTokens = reservedTokens
 	}
 	res.Tokens = grantedTokens
+	log.Info("gjt debug assign done", zap.Any("res", res), zap.Any("grantedTokens", grantedTokens))
 
 	var trickleDuration time.Duration
 	// Can't directly treat targetPeriodTime as trickleTime when there is a token remaining.
