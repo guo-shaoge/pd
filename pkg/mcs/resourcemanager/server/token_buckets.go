@@ -245,7 +245,12 @@ func (gts *GroupTokenBucketState) balanceSlotTokens(
 				BurstLimit: int64(burstLimit),
 			}
 			log.Info("gjt debug fillrate-1", zap.Any("slotidx", slotidx), zap.Any("fillrate", slot.settings.GetFillRate()),
-				zap.Any("ori fillrate", fillRate))
+				zap.Any("ori fillrate", fillRate),
+				zap.Any("ratio", ratio),
+				zap.Any("slot.requireTokensSum", slot.requireTokensSum),
+				zap.Any("gts.clientConsumptionTokensSum", gts.clientConsumptionTokensSum),
+				zap.Any("evenRatio", evenRatio),
+				zap.Any("len(gts.tokenSlots)", len(gts.tokenSlots)))
 			if slot.settings.GetFillRate() == 0 {
 				log.Info("gjt debug zero fillrate", zap.Any("slotidx", slotidx), zap.Any("ori fillrate", fillRate))
 			}
