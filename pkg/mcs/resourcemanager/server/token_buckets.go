@@ -191,7 +191,7 @@ func (gts *GroupTokenBucketState) balanceSlotTokens(
 		return
 	}
 
-	for _, slot := range gts.tokenSlots {
+	for slotidx, slot := range gts.tokenSlots {
 		if gts.clientConsumptionTokensSum == 0 || len(gts.tokenSlots) == 1 {
 			// Need to make each slot even.
 			slot.tokenCapacity = evenRatio * gts.Tokens
@@ -207,6 +207,11 @@ func (gts *GroupTokenBucketState) balanceSlotTokens(
 			slot.settings = &rmpb.TokenLimitSettings{
 				FillRate:   uint64(fillRate),
 				BurstLimit: int64(burstLimit),
+			}
+			log.Info("gjt debug fillrate-1", zap.Any("slotidx", slotidx), zap.Any("fillrate", slot.settings.GetFillRate()),
+				zap.Any("ori fillrate", fillRate))
+			if slot.settings.GetFillRate() == 0 {
+				log.Info("gjt debug zero fillrate", zap.Any("slotidx", slotidx), zap.Any("ori fillrate", fillRate))
 			}
 		} else {
 			// In order to have fewer tokens available to clients that are currently consuming more.
@@ -238,6 +243,11 @@ func (gts *GroupTokenBucketState) balanceSlotTokens(
 			slot.settings = &rmpb.TokenLimitSettings{
 				FillRate:   uint64(fillRate),
 				BurstLimit: int64(burstLimit),
+			}
+			log.Info("gjt debug fillrate-1", zap.Any("slotidx", slotidx), zap.Any("fillrate", slot.settings.GetFillRate()),
+				zap.Any("ori fillrate", fillRate))
+			if slot.settings.GetFillRate() == 0 {
+				log.Info("gjt debug zero fillrate", zap.Any("slotidx", slotidx), zap.Any("ori fillrate", fillRate))
 			}
 		}
 	}
