@@ -518,9 +518,6 @@ func (gtb *GroupTokenBucket) request(
 }
 
 func (ts *tokenSlot) assignSlotTokens(requiredToken float64, targetPeriodMs uint64) (*rmpb.TokenBucket, int64) {
-	log.Info("gjt debug"
-		zap.Int64("requiredToken", requiredToken),
-		zap.Any("ts.fillRate", ts.fillRate))
 	res := &rmpb.TokenBucket{
 		Settings: &rmpb.TokenLimitSettings{BurstLimit: ts.burstLimit},
 		Tokens:   0.0,
