@@ -470,6 +470,16 @@ func (gtb *GroupTokenBucket) inspectAnomalies(
 		// Reset after logging to keep the original context.
 		gtb.resetLoan()
 	}
+		logFields = append(logFields,
+			append(
+				slot.logFields(),
+				zap.String("resource-group-name", gtb.resourceGroupName),
+				zap.String("settings", gtb.Settings.String()),
+				zap.Float64("tokens", gtb.Tokens),
+				zap.Int("slot-len", len(gtb.tokenSlots)),
+			)...,
+		)
+		log.Error("gjt debug", logFields...)
 	return isAnomaly
 }
 
@@ -508,6 +518,9 @@ func (gtb *GroupTokenBucket) request(
 }
 
 func (ts *tokenSlot) assignSlotTokens(requiredToken float64, targetPeriodMs uint64) (*rmpb.TokenBucket, int64) {
+	log.Info("gjt debug"
+		zap.Int64("requiredToken", requiredToken),
+		zap.Any("ts.fillRate", ts.fillRate))
 	res := &rmpb.TokenBucket{
 		Settings: &rmpb.TokenLimitSettings{BurstLimit: ts.burstLimit},
 		Tokens:   0.0,
