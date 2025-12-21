@@ -363,7 +363,7 @@ func (gtb *GroupTokenBucket) request(now time.Time,
 		zap.Float64("required-token", requiredToken),
 		zap.Float64("assigned-tokens", res.Tokens)}
 	tmpLogFields = append(tmpLogFields, slot.logFields()...)
-	tmpLogFields = append(tmpLogFields, zap.String("resource-group-name", gtb.Settings.ResourceGroupName),
+	tmpLogFields = append(tmpLogFields, zap.Any("resource-group-name", clientUniqueID),
 		zap.String("settings", gtb.Settings.String()),
 		zap.Float64("tokens", gtb.Tokens),
 		zap.Float64("client-consumption-tokens-sum", gtb.clientConsumptionTokensSum),
