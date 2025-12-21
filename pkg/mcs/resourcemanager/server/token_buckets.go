@@ -368,7 +368,7 @@ func (gtb *GroupTokenBucket) request(now time.Time,
 		zap.Float64("tokens", gtb.Tokens),
 		zap.Float64("client-consumption-tokens-sum", gtb.clientConsumptionTokensSum),
 		zap.Int("slot-len", len(gtb.tokenSlots)))
-	log.Debug("request tokens from group token bucket", tmpLogFields...)
+	log.Info("request tokens from group token bucket", tmpLogFields...)
 
 	// Update bucket to record all tokens.
 	gtb.Tokens -= slot.lastTokenCapacity - slot.tokenCapacity
