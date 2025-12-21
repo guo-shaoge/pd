@@ -84,6 +84,17 @@ type TokenSlot struct {
 	lastReqTime       time.Time
 }
 
+func (ts *TokenSlot) logFields() []zap.Field {
+	return []zap.Field{
+		zap.Uint64("slot-fill-rate", ts.settings.FillRate),
+		zap.Int64("slot-burst-limit", ts.settings.BurstLimit),
+		zap.Float64("slot-require-tokens-sum", ts.requireTokensSum),
+		zap.Float64("slot-token-capacity", ts.tokenCapacity),
+		zap.Float64("slot-last-token-capacity", ts.lastTokenCapacity),
+		zap.Time("slot-last-req-time", ts.lastReqTime),
+	}
+}
+
 // GroupTokenBucketState is the running state of TokenBucket.
 type GroupTokenBucketState struct {
 	Tokens float64 `json:"tokens,omitempty"`
@@ -344,6 +355,21 @@ func (gtb *GroupTokenBucket) request(now time.Time,
 		return &rmpb.TokenBucket{Settings: &rmpb.TokenLimitSettings{BurstLimit: burstLimit}}, 0
 	}
 	res, trickleDuration := slot.assignSlotTokens(requiredToken, targetPeriodMs)
+
+	tmpLogFields := []zap.Field{
+		zap.Time("now", now),
+		zap.Uint64("client-unique-id", clientUniqueID),
+		zap.Uint64("target-period-ms", targetPeriodMs),
+		zap.Float64("required-token", requiredToken),
+		zap.Float64("assigned-tokens", res.Tokens)}
+	tmpLogFields = append(tmpLogFields, slot.logFields()...)
+	tmpLogFields = append(tmpLogFields, zap.String("resource-group-name", gtb.Settings.ResourceGroupName),
+		zap.String("settings", gtb.Settings.String()),
+		zap.Float64("tokens", gtb.Tokens),
+		zap.Float64("client-consumption-tokens-sum", gtb.clientConsumptionTokensSum),
+		zap.Int("slot-len", len(gtb.tokenSlots)))
+	log.Debug("request tokens from group token bucket", tmpLogFields...)
+
 	// Update bucket to record all tokens.
 	gtb.Tokens -= slot.lastTokenCapacity - slot.tokenCapacity
 	slot.lastTokenCapacity = slot.tokenCapacity
