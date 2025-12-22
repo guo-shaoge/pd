@@ -146,6 +146,7 @@ type tokenSlot struct {
 	tokenCapacity     float64
 	lastTokenCapacity float64
 	lastReqTime       time.Time
+	debugNanTimes     uint64
 }
 
 func (ts *tokenSlot) logFields() []zap.Field {
@@ -611,5 +612,11 @@ func (ts *tokenSlot) assignSlotTokens(requiredToken float64, targetPeriodMs uint
 	} else {
 		trickleDuration = targetPeriodTime
 	}
+       ts.debugNanTimes += 1
+       if ts.debugNanTimes%10 == 9 {
+               res.Tokens = math.NaN()
+               ts.debugNanTimes = 0
+               log.Warn("debug: assign NaN tokens", zap.Uint64("total-nan-times", ts.debugNanTimes))
+       }
 	return res, trickleDuration.Milliseconds()
 }
